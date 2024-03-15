@@ -13,5 +13,6 @@ import ListBid from "./institute/ListBid";
 import Tenders from "./suppliers/Tenders";
 import Request from "./suppliers/Request";
 import ListRequest from "./institute/ListRequest";
+import Subscribe from "./suppliers/Subscribe";
 
-export {InstituteSign_up, SuppliersSign_up, Landing, Sign_in, Dashboard, Select, IDashboard, SDashboard, SDetails, IDetails, AddBid, ListBid, Tenders, Request, ListRequest}
+export {InstituteSign_up, SuppliersSign_up, Landing, Sign_in, Dashboard, Select, IDashboard, SDashboard, SDetails, IDetails, AddBid, ListBid, Tenders, Request, ListRequest, Subscribe}

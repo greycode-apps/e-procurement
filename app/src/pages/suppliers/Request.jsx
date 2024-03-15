@@ -12,13 +12,11 @@ const Request = () => {
     const [data, setData] = useState([]);
   
     const [values, setValues] = useState({
-      item: "",
-      quantity: "",
-      variants: "",
-      price: "",
+      desc: "",
+      budget: "",
       bidId: "",
       supplierId: userId,
-      qoute: "",
+      // qoute: "",
     });
   
     useEffect(() => {
@@ -40,9 +38,6 @@ const Request = () => {
     useEffect(() => {
       setValues((prevValues) => ({
         ...prevValues,
-        item: data.item,
-        quantity: data.quantity,
-        price: data.budget,
         bidId: data.id,
       }));
     }, [data]);
@@ -53,16 +48,29 @@ const Request = () => {
       e.preventDefault();
   
       console.log(values);
-      await Axios.post('/tender/send-request', values, {
+      await Axios.post('/request/send', values, {
           headers: {
               Authorization: `Bearer ${token}`
           }
       }).then(res => {
-        navigate('/my-requests');
+        navigate('/s-dashboard')
+
         toast.info(res.data.msg);
       }).catch(err => {
           console.log(err)
-          toast.error(err.response.message);
+          if(err.response.data.err){
+            toast.error(err.response.data.err)
+          navigate('/s-dashboard')
+
+          }else if(err.response.data.msg){
+            toast.error(err.response.data.msg)
+          navigate('/s-dashboard')
+
+          }else{
+            toast.error(err.response.message);
+          navigate('/s-dashboard')
+
+          }
       })
     };
   return (
@@ -71,23 +79,27 @@ const Request = () => {
 
             <h1 className="text-3xl text-center text-gray-900 font-bold py-5">Bid for Tender</h1>
 
+            
+
             <form className="max-w-sm mx-auto" onSubmit={handleSubmit}>
+            <p className="block mb-2 text-sm font-medium text-gray-900 pt-5 ">{data.desc}</p>
+            <p className="block mb-2 text-sm font-medium text-gray-900 pt-5 ">Budget from Institute: ${data.budget} USD</p>
             <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 pt-5 ">Tender Category</label>
             <input type="text" id="disabled-input" aria-label="disabled input" className="mb-5 bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 cursor-not-allowed dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 dark:focus:ring-blue-500 dark:focus:border-blue-500" value={`${data.trade_type}`} disabled />
             
 
-            <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 pt-5 ">Budget</label>
-            <input type="text" id="disabled-input-2" aria-label="disabled input 2" className="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 cursor-not-allowed dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 dark:focus:ring-blue-500 dark:focus:border-blue-500" value={`$${data.budget} USD`} disabled />
+           
 
             <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 pt-5 ">Due Date</label>
             <input type="text" id="disabled-input-2" aria-label="disabled input 2" className="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 cursor-not-allowed dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 dark:focus:ring-blue-500 dark:focus:border-blue-500" value={`${new Date(data.due_date).toLocaleDateString()}`} disabled />
 
-
+            <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 pt-5 ">Budget</label>
+            <input type="number" id="disabled-input-2" aria-label="disabled input 2" className="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5   dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 dark:focus:ring-blue-500 dark:focus:border-blue-500" name="budget" onChange={(e) => setValues({...values, budget: e.target.value})}/>
 
             
-            <label className="block mb-2 text-sm font-medium text-gray-900" htmlFor="user_avatar">Attache| Upload Qoutation</label>
-            <input className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="user_avatar_help" id="user_avatar" name="qoute" type="file" accept="application/pdf" onChange={(e) => setValues({...values, qoute: e.target.files[0]})}/>
-            <div className="mt-1 text-sm text-gray-500 dark:text-gray-300" id="user_avatar_help">Please upload pdf files only. <span className="text-red-400 text-xs">size ( 10 mb)</span></div>
+            <label className="block mb-2 text-sm font-medium text-gray-900 pt-5" htmlFor="user_avatar">Quotation | Items</label>
+            <textarea className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50  focus:outline-none  dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="user_avatar_help" id="user_avatar" name="desc" type="file" rows={5} accept="application/pdf" onChange={(e) => setValues({...values, desc: e.target.value})}></textarea>
+           
            
 
             <button type="submit" className="py-3 mt-5 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5  text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Send Request</button>

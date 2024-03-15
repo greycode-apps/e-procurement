@@ -47,14 +47,11 @@ const ListBid = () => {
                                 Product | Item (s)
                             </th>
                             <th scope="col" className="px-6 py-3">
-                                Quantity
-                            </th>
-                            <th scope="col" className="px-6 py-3">
                                 Total Budget
                             </th>
-                            <th scope="col" className="px-6 py-3">
+                            {/* <th scope="col" className="px-6 py-3">
                                 Action
-                            </th>
+                            </th> */}
                         </tr>
                     </thead>
                     <tbody>
@@ -67,15 +64,12 @@ const ListBid = () => {
                                         {bid.trade_type}
                                     </th>
                                     <td className="px-6 py-4">
-                                        {bid.item}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                       {bid.quantity}
+                                        {bid.desc}
                                     </td>
                                     <td className="px-6 py-4">
                                         {bid.budget}
                                     </td>
-                                    <td className="px-6 py-4"><Link className="bg-red-400 text-white rounded px-3 py-2">Delete</Link></td>
+                                    {/* <td className="px-6 py-4"><Link className="bg-red-400 text-white rounded px-3 py-2">Delete</Link></td> */}
                                 </tr>
                                 )
                             })

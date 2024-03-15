@@ -32,6 +32,8 @@ const Details = () => {
             }
             navigate('/s-dashboard');
             toast.info(res.data.msg);
+
+            window.location.reload();
         }).catch( error => {
             console.log(error)
             if(error.response.data.err){
@@ -41,6 +43,8 @@ const Details = () => {
             }else{
                 toast.error(error.message);
             }
+            window.location.reload();
+
         })
 
     }

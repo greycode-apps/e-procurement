@@ -14,9 +14,9 @@ const Dashboard = () => {
             <h1 className="md:text-2xl text-white text-lg text-center">Subscribe</h1>
           </Link>
 
-          <Link to="/add-bid" className="py-3 px-3 rounded shadow bg-yellow-400">
+          {/* <Link to="/my-request" className="py-3 px-3 rounded shadow bg-yellow-400">
             <h1 className="md:text-2xl text-white text-lg text-center">My Requests</h1>
-          </Link>
+          </Link> */}
 
         </div>
       </div>

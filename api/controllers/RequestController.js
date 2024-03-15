@@ -1,12 +1,9 @@
-const {Request, User} = require("../models");
-const Bid = require("../models/Bid");
+const {Request, User, Supplier,Bid, Institute, Payment} = require("../models");
 const EmailSender = require("../services/Email");
 
 
 const makeRequest = async(req, res) => {
-    const {userId:user, bidId, desc, budget, qoute, trade_type:trade_sector} = req.body;
-
-    const {userId} = req.user;
+    const {supplierId:user, bidId, desc, budget, qoute, trade_type:trade_sector} = req.body;
 
     try {
         
@@ -16,18 +13,20 @@ const makeRequest = async(req, res) => {
             return res.json({msg: "You have already applied for this tender|bid. Please try another one."})
         }
 
-        const {trade_type, org_name, supplierId} = await User.findOne({where: {user}, include: [Supplier]});
+        const userz = await User.findOne({where: {id:user}, include: [Supplier]});
 
-        const {email} = await Bid.findOne({where: {bidId}, include: [User]});
+        const {supplierId, org_name, trade_type, email} = userz.Supplier;
 
-        if(trade_type !== trade_sector){
-            return res.json({msg: "You can only make request to bids|tenders in your trading sector."});
-        }
+        // const {email} = await Bid.findOne({where: {id:bidId}, include: [Institute]});
 
-        const paymentExists = await Payment.findOne({where: {supplierId}});
+        // if(trade_type !== trade_sector){
+        //     return res.json({msg: "You can only make request to bids|tenders in your trading sector."});
+        // }
+
+        const paymentExists = await Payment.findOne({where: {supplierId:user}});
 
         if(!paymentExists){
-            return res.json({msg: "Please subscribe 1st then make a request."});
+            return res.json({msg: "Please subscribe|make payment 1st then make a request."});
         }
 
         await Request.create({
@@ -49,7 +48,17 @@ const rejectRequest = async(req, res) => {
     const {id} = req.params;
     
     try {
-        
+        const request = await Request.findOne({where: {id}});
+
+        if(!request){
+            return res.json({msg: "Request does not exist."});
+        }
+
+        await request.update({
+            is_accepted: false
+        })
+
+        return res.json({msg: "Request was rejected."})
     } catch (error) {
         console.log(error);
         return res.json({msg: "Internal server error. Failer to reject request"});
@@ -61,31 +70,60 @@ const acceptRequest = async(req, res) => {
     
     try {
 
-        const {bid: {trade_type, org_name: institute, due_date}} = await Bid.findOne({where: {id}, include: [Institute]});
+        const bid = await Bid.findOne({where: {id}, include: [Institute]});
+        const request = await Request.findOne({where: {id}});
 
-        const {supplierId, org_name, email} = await Supplier.findOne({where: {id}, include: [User]})
+        const {trade_type, org_name: institute, due_date} = bid;
+        
+        const supDetails = await Supplier.findAll({include: [User]})
 
         if(!bid){
             return res.json({msg: "Tender for this request is not found | tender might have expired or applied. Please try another one."})
         }
 
-        await bid.update({
-            is_available: false,
-            acceptedFor: org_name
-        });
+        if(supDetails.length > 0){
+            const details = supDetails[supDetails.length - 1];
 
-        const send = new EmailSender();
+            const {org_name, User} = details;
 
-        send.sendEmail(email, 'Request|Qoute accepted.', `Your request to supply ${trade_type} items for ${institute} was accepted. Please make sure you supply the requested items before ${due_date}`);
+            await bid.update({
+                is_available: false,
+                acceptedFor: org_name
+            });
+
+            await request.update({
+                is_accepted: true
+            });
+
+            const send = new EmailSender();
+
+            send.sendEmail(User.email, 'Request|Qoute accepted.', `Your request to supply ${trade_type} items for ${institute} was accepted. Please make sure you supply the requested items before ${due_date}`);
+
+            return res.json({msg: "Request accepted."});
+        }else{
+            return res.json({msg: "Failed to accept request"});
+        }
+        
         
     } catch (error) {
         console.log(error);
-        return res.json({msg: "Internal server error. Failer to reject request"});
+        return res.json({msg: "Internal server error. Failer to accept request"});
+    }
+}
+
+const myRequest = async(req, res) => {
+    try {
+        const request = await Request.findAll();
+
+        return res.json({data: request});
+    } catch (error) {
+        return res.json({msg: "Internal server error. Failed to retrieve your requests."});
     }
 }
 
 module.exports = {
     makeRequest,
     rejectRequest,
-    acceptRequest
+    acceptRequest,
+    myRequest
 }

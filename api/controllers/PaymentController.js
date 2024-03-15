@@ -1,11 +1,11 @@
-const {Supplier} = require("../models");
+const {Supplier, Payment:MyPayment} = require("../models");
 const {Paynow} = require('paynow');
 const {PAYNOW_INTEGRATION_ID, PAYNOW_INTEGRATION_KEY} = require('../config');
 
 let paynow = new Paynow(PAYNOW_INTEGRATION_ID, PAYNOW_INTEGRATION_KEY);
 
 const makePayment = async(req,res) => {
-    const {phone, amount, userId: user, bidId, trade_type} = req.body;
+    const {phone, userId: user, bidId, trade_type} = req.body;
 
     const {id} = req.params;
 
@@ -15,10 +15,10 @@ const makePayment = async(req,res) => {
 
         const {id: owner, trade_type: trade_sector} = await Supplier.findOne({where: {userId}, attribute: ['id', 'trade_type']});
 
-        if(trade_sector !== trade_type){
-            console.log(trade_sector)
-            return res.json({msg: "You can only make payment your trade section."})
-        }
+        // if(trade_sector !== trade_type){
+        //     console.log(trade_sector)
+        //     return res.json({msg: "You can only make payment your trade section."})
+        // }
 
         const generateRandomNumber = () => {
             return Math.floor(1000 + Math.random() * 9000);
@@ -31,25 +31,58 @@ const makePayment = async(req,res) => {
             return letters[randomIndex1] + letters[randomIndex2];
         };
 
-        paynow.resultUrl = `http://localhost:8080/payment/result`;
+        paynow.resultUrl = "http://example.com/gateways/paynow/update";
+        paynow.returnUrl = "http://example.com/return?gateway=paynow&merchantReference=1234";
 
         const invoiceNo = generateRandomLetters() + generateRandomNumber();
 
         const payment = paynow.createPayment(invoiceNo, 'munyamakudzai095@gmail.com');
 
-        payment.add(trade_sector, amount);
+        payment.add(trade_sector, 1);
 
-        paynow.sendMobile(payment, phone, 'ecocash').then(response => {
-            if(response.status === 'ok' && response.success){
-                
-                return res.json({msg: response.instructions});
-            }else{
-                return res.json(response.success);
-            }
+        const paymentExists = await MyPayment.findOne({where: {supplierId:owner}});
+
+        if(paymentExists){
+            return res.json({msg: "Payment for this term is already made.Please try again next term"})
+        }
+
+        const pay = await paynow.sendMobile(payment, phone, 'ecocash').then(response => {
+
+            console.log(response)
+            let pollUrl = response.pollUrl; 
+            let status = paynow.pollTransaction(pollUrl);
+            if (response.status === 'ok') {
+                return status.then((resolvedStatus) => {
+                  if (!resolvedStatus.paid) {
+                    return Promise.resolve().then(() => {
+                      return MyPayment.create({
+                        trade_type: trade_sector,
+                        amount: 150,
+                        supplierId: owner
+                      });
+                    }).then(() => {
+                      return res.json({ msg: "Payment processed successfully." });
+                    });
+                  } else {
+                    return Promise.reject({ msg: "Payment already paid." });
+                  }
+                });
+              } else {
+                return Promise.reject({ msg: "Payment Failed. Please try again" });
+              }
+
+
             
         }).catch(ex => {
             console.log('Your application has broken an axle', ex)
+            return res.json({err: ex})
         })
+
+        if(!pay){
+            return res.json({msg: "Something went wrong"})
+        }
+
+        
 
     } catch (error) {
         console.log(error);

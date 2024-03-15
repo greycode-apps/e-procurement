@@ -22,6 +22,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+        acceptedFor: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
         due_date: {
             type: DataTypes.DATE,
             validate: {
@@ -37,7 +41,6 @@ module.exports = (sequelize, DataTypes) => {
 
     Bid.associate = (models) => {
         Bid.belongsTo(models.Institute, {foreignKey: "ownerId"}),
-        Bid.belongsTo(models.Supplier, {foreignKey: "acceptedFor"}),
         Bid.hasMany(models.Request, {foreignKey: "bidId"})
 
     }

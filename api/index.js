@@ -5,7 +5,7 @@ const db = require('./models/index');
 require('dotenv').config();
 const cors = require('cors');
 const {PORT, CLIENT_ORIGIN} = require('./config');
-const { AuthRouter, SupplierRouter, InstituteRouter, BidRouter, PayRouter, } = require('./routes');
+const { AuthRouter, SupplierRouter, InstituteRouter, BidRouter, PayRouter, RequestRouter, } = require('./routes');
 
 
 app.use(cors({
@@ -26,6 +26,7 @@ app.use('/api/v1/supplier', SupplierRouter);
 app.use('/api/v1/institute', InstituteRouter);
 app.use('/api/v1/tender', BidRouter);
 app.use('/api/v1/subscribe', PayRouter);
+app.use('/api/v1/request', RequestRouter);
 
 db.sequelize.sync({ force: false })
   .then(() => {

@@ -27,7 +27,6 @@ module.exports = (sequelize, DataTypes) => {
 
     Supplier.associate = (models) => {
         Supplier.belongsTo(models.User, {foreignKey: 'userId'}),
-        Supplier.hasMany(models.Bid, {foreignKey: "acceptedFor"}),
         Supplier.hasMany(models.Request, {foreignKey: "supplierId"}),
         Supplier.hasMany(models.Payment, {foreignKey: "supplierId"})
     }

@@ -11,12 +11,12 @@ const register = async (req, res) => {
         const existingUser = await User.findOne({ where: { username } });
 
         if (existingUser) {
-        return res.status(409).json({ msg: 'Username already exists' });
+        return res.status(409).json({ err: 'Username already exists' });
         }
 
         const emailExist = await User.findOne({where: {email}});
         if(emailExist){
-        return res.status(409).json({msg: 'Email already registered. Please try a different email account.'});
+        return res.status(409).json({err: 'Email already registered. Please try a different email account.'});
         }
 
         const hashedPassword = await bcryptjs.hash(password, 10);
@@ -43,13 +43,13 @@ const login = async (req, res) => {
     try {
       const user = await User.findOne({ where: { email } });
       if (!user) {
-        return res.status(401).json({ msg: 'Invalid email or password' });
+        return res.status(401).json({ err: 'Invalid email or password' });
       }
   
       // Compare the provided password with the stored hashed password
       const isPasswordValid = await bcryptjs.compare(password, user.password);
       if (!isPasswordValid) {
-        return res.status(401).json({ msg: 'Invalid email or password' });
+        return res.status(401).json({ err: 'Invalid email or password' });
       }
       // Create a JWT token
       const token = jwt.sign({ userId: user.id, role: user.user_type }, JWT_SECRET, { expiresIn: '3d' });
